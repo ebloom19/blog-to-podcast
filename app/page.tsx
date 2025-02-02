@@ -43,7 +43,7 @@ export default function Home() {
       </div>
       {error && <p className="mt-4 text-red-500">{error}</p>}
       {loading && currentMessage && (
-        <div className="mt-6 w-full max-w-xl m-auto">
+        <div className="mt-6 w-full max-w-xl mx-auto">
           <RotatingText message={currentMessage} />
         </div>
       )}

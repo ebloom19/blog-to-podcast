@@ -36,7 +36,7 @@ export const generatePodcastAudio = async (script: string): Promise<string> => {
     input: script,
     voices: [
       {
-        voice: "Jennifer (English (US)/American)",
+        voice: "Ava (English (AU)/Australian)",
         turn_prefix: "Speaker 1: ",
       },
       {
