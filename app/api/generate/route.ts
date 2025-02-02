@@ -1,3 +1,7 @@
+export const config = {
+  runtime: 'nodejs',
+};
+
 import { NextRequest } from "next/server";
 import { scrapeBlogPost } from "@/utils/scrapeBlogPost";
 import { generatePodcastScript } from "@/utils/generatePodcastScript";
