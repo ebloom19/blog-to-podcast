@@ -1,4 +1,4 @@
-export const maxDuration = 360; // 6 minutes
+export const maxDuration = 300; // 5 minutes
 
 import { NextRequest } from "next/server";
 import { scrapeBlogPost } from "@/utils/scrapeBlogPost";
