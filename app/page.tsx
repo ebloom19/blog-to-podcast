@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { ShootingStars } from "@/components/ui/shooting-stars";
 import { StarsBackground } from "@/components/ui/stars-background";
 import { AudioPlayer } from "@/components/ui/AudioPlayer";
-import { RotatingText } from "@/components/ui/RotatingText";
+import { Loader2 } from "lucide-react";
 
 export default function Home() {
   const { generatePodcast, loading, error, data, currentMessage } = useGeneratePodcast();
@@ -42,9 +42,10 @@ export default function Home() {
         </Button>
       </div>
       {error && <p className="mt-4 text-red-500">{error}</p>}
-      {loading && currentMessage && (
-        <div className="mt-6 w-full max-w-xl mx-auto">
-          <RotatingText message={currentMessage} />
+      {loading && (
+        <div className="mt-6 flex items-center justify-center space-x-2">
+          <Loader2 className="h-5 w-5 animate-spin text-white" />
+          <span className="text-white">{currentMessage || "Generating podcast..."}</span>
         </div>
       )}
       {data?.audioUrl && (
