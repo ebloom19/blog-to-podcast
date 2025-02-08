@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
 
   try {
     // Step 1: Scrape the blog post content
-    const { title, content } = (await scrapeBlogPost(url)).blog_post;
+    const { title, content } = (await scrapeBlogPost(url)).blogPost;
     console.log("Scraped Blog Content:", title, content);
 
     // Step 2: Generate the podcast dialogue script
