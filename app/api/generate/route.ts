@@ -2,7 +2,8 @@ import { NextRequest } from "next/server";
 import { scrapeBlogPost } from "@/utils/scrapeBlogPost";
 import { generatePodcastScript } from "@/utils/generatePodcastScript";
 import { generatePodcastAudio } from "@/utils/generatePodcastAudio";
-
+import { generateCoverImage } from "@/utils/generateCoverImage";
+import { generatePodcastMetadata } from "@/utils/generatePodcastMetadata";
 export async function POST(request: NextRequest) {
   const { url } = await request.json();
 
@@ -15,14 +16,22 @@ export async function POST(request: NextRequest) {
 
   try {
     // Step 1: Scrape the blog post content
-    const { title, content } = (await scrapeBlogPost(url)).blog_post;
+    const { title, content } = (await scrapeBlogPost(url)).blogPost;
     console.log("Scraped Blog Content:", title, content);
 
     // Step 2: Generate the podcast dialogue script
     const { script } = await generatePodcastScript(title, content);
     console.log("Generated Podcast Script:", script);
 
-    // Step 3: Generate the podcast audio using Fal.ai
+    // Step 3: Generate podcast metadata (e.g., episode description)
+    const { description } = await generatePodcastMetadata(title, script);
+    console.log("Generated Podcast Metadata:", description);
+
+    // Step 4: Generate a cover image for the podcast episode using Fal.ai
+    const { coverImageUrl } = await generateCoverImage(title, script);
+    console.log("Generated Podcast Cover Image URL:", coverImageUrl);
+
+    // Step 5: Generate the podcast audio using Fal.ai
     const audioUrl = await generatePodcastAudio(script);
     console.log("Generated Podcast Audio URL:", audioUrl);
 
@@ -31,6 +40,9 @@ export async function POST(request: NextRequest) {
         success: true,
         message: "Podcast generation completed successfully.",
         audioUrl,
+        coverImageUrl,
+        description,
+        title,
       }),
       { status: 200, headers: { "Content-Type": "application/json" } }
     );

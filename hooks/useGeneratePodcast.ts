@@ -1,10 +1,13 @@
 import { useState, useEffect } from "react";
 import { useToast } from "./use-toast";
 
-interface GeneratePodcastResponse {
+export interface GeneratePodcastResponse {
   success: boolean;
   message: string;
-  audioUrl?: string;
+  audioUrl: string;
+  coverImageUrl: string;
+  description: string;
+  title: string;
 }
 
 export const useGeneratePodcast = () => {
