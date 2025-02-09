@@ -2,8 +2,6 @@
 
 import { z } from "zod";
 import { GoogleGenerativeAI, SchemaType } from "@google/generative-ai";
-import chromium from 'chrome-aws-lambda';
-import puppeteer from 'puppeteer-core';
 
 interface ScrapedData {
   blogPost: {
@@ -13,28 +11,15 @@ interface ScrapedData {
 }
 
 /**
- * Fetches the rendered HTML content from the given URL using chrome-aws-lambda and puppeteer-core.
- * This method is suited for Vercel's serverless environment.
+ * Fetches the HTML content from the given URL.
+ * Note: If the site renders content using client-side JS, consider using a headless browser.
  */
 const fetchPageContent = async (url: string): Promise<string> => {
-  let browser = null;
-  try {
-    browser = await puppeteer.launch({
-      args: chromium.args,
-      defaultViewport: chromium.defaultViewport,
-      executablePath: await chromium.executablePath,
-      headless: chromium.headless,
-    });
-    const page = await browser.newPage();
-    // Use networkidle2 which is a bit more forgiving.
-    await page.goto(url, { waitUntil: "networkidle2", timeout: 30000 });
-    const content = await page.content();
-    return content;
-  } finally {
-    if (browser !== null) {
-      await browser.close();
-    }
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Failed to fetch ${url}, status: ${response.status}`);
   }
+  return response.text();
 };
 
 /**
@@ -48,7 +33,7 @@ Extract the title and the full content from the following rendered HTML.
 Determine whether the content is a blog post or an article using your own assessment.
 Return the result as a JSON object in the following format:
 {
-  "blog_post": {
+  "blogPost": {
     "title": "extracted title",
     "content": "extracted content"
   }
@@ -65,7 +50,7 @@ ${htmlContent}`;
     description: "Extract blog post information",
     type: SchemaType.OBJECT,
     properties: {
-      blog_post: {
+      blogPost: {
         type: SchemaType.OBJECT,
         properties: {
           title: {
@@ -82,7 +67,7 @@ ${htmlContent}`;
         required: ["title", "content"],
       },
     },
-    required: ["blog_post"],
+    required: ["blogPost"],
   };
 
   // Use Google Generative AI exclusively

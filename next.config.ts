@@ -7,6 +7,9 @@ const nextConfig: NextConfig = {
     }
     return config;
   },
+  images: {
+    domains: ["fal.media"],
+  },
 };
 
 export default nextConfig;

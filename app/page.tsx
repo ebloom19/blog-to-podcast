@@ -6,8 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ShootingStars } from "@/components/ui/shooting-stars";
 import { StarsBackground } from "@/components/ui/stars-background";
-import { AudioPlayer } from "@/components/ui/AudioPlayer";
 import { Loader2 } from "lucide-react";
+import PodcastDisplay from "@/components/PodcastDisplay";
 
 export default function Home() {
   const { generatePodcast, loading, error, data, currentMessage } = useGeneratePodcast();
@@ -48,10 +48,8 @@ export default function Home() {
           <span className="text-white">{currentMessage || "Generating podcast..."}</span>
         </div>
       )}
-      {data?.audioUrl && (
-        <div className="mt-4 text-green-500 flex flex-col items-center w-1/3 z-30">
-          <AudioPlayer src={data.audioUrl} />
-        </div>
+      {data && (
+          <PodcastDisplay podcastData={data} />
       )}
       <ShootingStars />
       <StarsBackground />
