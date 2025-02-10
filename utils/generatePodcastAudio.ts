@@ -19,7 +19,9 @@ interface FalAIResponse {
  * @param script - The podcast dialogue script with speaker labels.
  * @returns A promise that resolves to the audio URL.
  */
-export const generatePodcastAudio = async (script: string): Promise<string> => {
+export const generatePodcastAudio = async (
+  script: string
+): Promise<{ audioUrl: string; audioDuration: number }> => {
   const FAL_API_KEY = process.env.FAL_KEY; // Ensure FAL_KEY is set in .env.local
 
   if (!FAL_API_KEY) {
@@ -99,7 +101,7 @@ export const generatePodcastAudio = async (script: string): Promise<string> => {
       throw new Error("Failed to retrieve the audio file from Fal.ai.");
     }
 
-    return result.audio.url;
+    return { audioUrl: result.audio.url, audioDuration: result.audio.duration };
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {

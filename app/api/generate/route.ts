@@ -4,6 +4,8 @@ import { generatePodcastScript } from "@/utils/generatePodcastScript";
 import { generatePodcastAudio } from "@/utils/generatePodcastAudio";
 import { generateCoverImage } from "@/utils/generateCoverImage";
 import { generatePodcastMetadata } from "@/utils/generatePodcastMetadata";
+import { v4 as uuidv4 } from "uuid";
+
 export async function POST(request: NextRequest) {
   const { url } = await request.json();
 
@@ -32,22 +34,24 @@ export async function POST(request: NextRequest) {
     console.log("Generated Podcast Cover Image URL:", coverImageUrl);
 
     // Step 5: Generate the podcast audio using Fal.ai
-    const audioUrl = await generatePodcastAudio(script);
+    const { audioUrl, audioDuration } = await generatePodcastAudio(script);
     console.log("Generated Podcast Audio URL:", audioUrl);
 
     return new Response(
       JSON.stringify({
+        id: uuidv4(),
         success: true,
         message: "Podcast generation completed successfully.",
-        audioUrl,
-        coverImageUrl,
-        description,
-        title,
+        audioUrl: audioUrl,
+        audioDuration: audioDuration,
+        coverImageUrl: coverImageUrl,
+        title: title,
+        description: description,
       }),
       { status: 200, headers: { "Content-Type": "application/json" } }
     );
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     console.error("Error during podcast generation:", error.message);
     return new Response(
