@@ -6,7 +6,7 @@ export async function POST(request: NextRequest) {
     // Expect the podcastData to contain audioUrl, coverImageUrl, and description
     const { audioUrl, coverImageUrl, description, title } = await request.json();
 
-    const fileName = `${title.replace(/ /g, "_")}_podcast.zip`;
+    const fileName = `${title.toLowerCase().replace(/ /g, "_")}_podcast.zip`;
 
     const zip = new JSZip();
 

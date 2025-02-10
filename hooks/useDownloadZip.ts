@@ -22,6 +22,10 @@ export const useDownloadZip = (): UseDownloadZipReturn => {
     setLoading(true);
     setError(null);
 
+    const fileName = `${podcastData.title
+      .toLowerCase()
+      .replace(/ /g, "_")}_podcast.zip`;
+
     try {
       const response = await fetch("/api/downloadPodcastZip", {
         method: "POST",
@@ -37,7 +41,7 @@ export const useDownloadZip = (): UseDownloadZipReturn => {
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = "podcast.zip";
+      link.download = fileName;
       link.click();
       window.URL.revokeObjectURL(url);
 

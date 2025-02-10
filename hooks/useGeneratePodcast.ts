@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { usePodcastStore } from "@/stores/podcastStore";
 import { useToast } from "./use-toast";
 
 export interface GeneratePodcastResponse {
@@ -16,6 +17,7 @@ export const useGeneratePodcast = () => {
   const [data, setData] = useState<GeneratePodcastResponse | null>(null);
   const [currentMessage, setCurrentMessage] = useState<string>("");
   const { toast } = useToast();
+  const addPodcast = usePodcastStore((state) => state.addPodcast);
 
   const generatePodcast = async (url: string) => {
     setLoading(true);
@@ -47,13 +49,17 @@ export const useGeneratePodcast = () => {
 
       setData(result);
       setCurrentMessage(result.message);
+
+      // Add the newly generated podcast to the store.
+      addPodcast(result);
+
       toast({
         title: "Success",
         description: result.message,
       });
       setLoading(false);
-    
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       setError(err.message || "An unexpected error occurred.");
       setLoading(false);
