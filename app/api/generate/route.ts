@@ -5,6 +5,7 @@ import { generatePodcastAudio } from "@/utils/generatePodcastAudio";
 import { generateCoverImage } from "@/utils/generateCoverImage";
 import { generatePodcastMetadata } from "@/utils/generatePodcastMetadata";
 import { v4 as uuidv4 } from "uuid";
+import { saveRequestStatus, getRequestStatus } from "@/utils/db";
 
 export async function POST(request: NextRequest) {
   const { url } = await request.json();
@@ -16,50 +17,132 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  // Generate a unique request ID
+  const requestId = uuidv4();
+  
+  // Initialize request status in the database
+  const initialStatus = {
+    status: "processing",
+    step: "initializing",
+    progress: 0,
+    createdAt: new Date().toISOString(),
+  };
+  
+  await saveRequestStatus(requestId, initialStatus);
+
+  // Start the generation process in the background
+  generatePodcastAsync(requestId, url);
+
+  // Return immediately with the request ID
+  return new Response(
+    JSON.stringify({
+      success: true,
+      message: "Podcast generation started.",
+      requestId: requestId,
+    }),
+    { status: 202, headers: { "Content-Type": "application/json" } }
+  );
+}
+
+export async function GET(request: NextRequest) {
+  const requestId = request.nextUrl.searchParams.get("requestId");
+  
+  if (!requestId) {
+    return new Response(
+      JSON.stringify({ success: false, message: "Request ID is required." }),
+      { status: 400, headers: { "Content-Type": "application/json" } }
+    );
+  }
+
+  const requestData = await getRequestStatus(requestId);
+  
+  if (!requestData) {
+    return new Response(
+      JSON.stringify({ success: false, message: "Request not found." }),
+      { status: 404, headers: { "Content-Type": "application/json" } }
+    );
+  }
+
+  return new Response(
+    JSON.stringify({
+      success: true,
+      ...requestData,
+    }),
+    { status: 200, headers: { "Content-Type": "application/json" } }
+  );
+}
+
+async function generatePodcastAsync(requestId: string, url: string) {
   try {
     // Step 1: Scrape the blog post content
+    await saveRequestStatus(requestId, {
+      status: "processing",
+      step: "scraping_blog",
+      progress: 10,
+    });
+    
     const { title, content } = (await scrapeBlogPost(url)).blogPost;
-    console.log("Scraped Blog Content:", title, content);
-
+    
     // Step 2: Generate the podcast dialogue script
+    await saveRequestStatus(requestId, {
+      status: "processing",
+      step: "generating_script",
+      progress: 30,
+    });
+    
     const { script } = await generatePodcastScript(title, content);
-    console.log("Generated Podcast Script:", script);
-
-    // Step 3: Generate podcast metadata (e.g., episode description)
+    
+    // Step 3: Generate podcast metadata
+    await saveRequestStatus(requestId, {
+      status: "processing",
+      step: "generating_metadata",
+      progress: 50,
+    });
+    
     const { description } = await generatePodcastMetadata(title, script);
-    console.log("Generated Podcast Metadata:", description);
-
-    // Step 4: Generate a cover image for the podcast episode using Fal.ai
+    
+    // Step 4: Generate a cover image
+    await saveRequestStatus(requestId, {
+      status: "processing",
+      step: "generating_cover_image",
+      progress: 70,
+    });
+    
     const { coverImageUrl } = await generateCoverImage(title, script);
-    console.log("Generated Podcast Cover Image URL:", coverImageUrl);
-
-    // Step 5: Generate the podcast audio using Fal.ai
+    
+    // Step 5: Generate the podcast audio
+    await saveRequestStatus(requestId, {
+      status: "processing",
+      step: "generating_audio",
+      progress: 90,
+    });
+    
     const { audioUrl, audioDuration } = await generatePodcastAudio(script);
-    console.log("Generated Podcast Audio URL:", audioUrl);
+    
+    // Update with completed data
+    await saveRequestStatus(requestId, {
+      status: "completed",
+      step: "completed",
+      progress: 100,
+      completedAt: new Date().toISOString(),
+      data: {
+        id: requestId,
+        audioUrl,
+        audioDuration,
+        coverImageUrl,
+        title,
+        description,
+      },
+    });
 
-    return new Response(
-      JSON.stringify({
-        id: uuidv4(),
-        success: true,
-        message: "Podcast generation completed successfully.",
-        audioUrl: audioUrl,
-        audioDuration: audioDuration,
-        coverImageUrl: coverImageUrl,
-        title: title,
-        description: description,
-      }),
-      { status: 200, headers: { "Content-Type": "application/json" } }
-    );
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     console.error("Error during podcast generation:", error.message);
-    return new Response(
-      JSON.stringify({
-        success: false,
-        message: "Podcast generation failed.",
-      }),
-      { status: 500, headers: { "Content-Type": "application/json" } }
-    );
+    
+    // Update with error status
+    await saveRequestStatus(requestId, {
+      status: "failed",
+      error: error.message,
+      completedAt: new Date().toISOString(),
+    });
   }
 }
